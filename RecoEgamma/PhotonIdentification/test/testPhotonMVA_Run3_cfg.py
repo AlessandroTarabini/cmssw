@@ -2,6 +2,21 @@ import FWCore.ParameterSet.Config as cms
 from PhysicsTools.SelectorUtils.tools.vid_id_tools import *
 from Configuration.AlCa.GlobalTag import GlobalTag
 
+#AT
+from FWCore.ParameterSet.VarParsing import VarParsing
+FLAGS = VarParsing('analysis')
+FLAGS.register('sample',
+               '',
+               VarParsing.multiplicity.singleton,
+               VarParsing.varType.string,
+               "File to process.")
+FLAGS.register('output',
+               '',
+               VarParsing.multiplicity.singleton,
+               VarParsing.varType.string,
+               "Name of the output file.")
+FLAGS.parseArguments()
+
 process = cms.Process("PhotonMVANtuplizer")
 
 #process.load('Configuration.StandardSequences.GeometryRecoDB_cff')
@@ -27,8 +42,9 @@ inputFilesAOD = cms.untracked.vstring(
         '/store/mc/Run3Winter22DR/GJet_Pt-10to40_DoubleEMEnriched_TuneCP5_13p6TeV_pythia8/AODSIM/FlatPU0to70_122X_mcRun3_2021_realistic_v9-v2/2430000/0817e2b0-81e3-49f4-90c1-19cfa46ab46a.root')
 
 inputFilesMiniAOD = cms.untracked.vstring(
-        'file:/eos/cms/store/group/phys_egamma/ec/prrout/Run3IDchecks/MiniAOD_Hgg.root'
-        #'/store/mc/Run3Winter22MiniAOD/GJet_Pt-10to40_DoubleEMEnriched_TuneCP5_13p6TeV_pythia8/MINIAODSIM/FlatPU0to70_122X_mcRun3_2021_realistic_v9-v2/2430000/019c9ef2-86db-4258-a076-bdb5169dc3d0.root',
+        FLAGS.sample
+        # 'file:/eos/cms/store/group/phys_egamma/ec/prrout/Run3IDchecks/MiniAOD_Hgg.root'
+        # '/store/mc/Run3Winter22MiniAOD/GJet_Pt-10to40_DoubleEMEnriched_TuneCP5_13p6TeV_pythia8/MINIAODSIM/FlatPU0to70_122X_mcRun3_2021_realistic_v9-v2/2430000/019c9ef2-86db-4258-a076-bdb5169dc3d0.root',
         #'/store/mc/Run3Winter22MiniAOD/GJet_Pt-10to40_DoubleEMEnriched_TuneCP5_13p6TeV_pythia8/MINIAODSIM/FlatPU0to70_122X_mcRun3_2021_realistic_v9-v2/2430000/0a80915b-ce51-4d0e-ae0d-a170a6736a19.root',
        #'/store/mc/Run3Winter22MiniAOD/GJet_Pt-10to40_DoubleEMEnriched_TuneCP5_13p6TeV_pythia8/MINIAODSIM/FlatPU0to70_122X_mcRun3_2021_realistic_v9-v2/2430000/1020066d-ab70-4718-8535-efbdfd3356cd.root',
        #'/store/mc/Run3Winter22MiniAOD/GJet_Pt-10to40_DoubleEMEnriched_TuneCP5_13p6TeV_pythia8/MINIAODSIM/FlatPU0to70_122X_mcRun3_2021_realistic_v9-v2/2430000/11fa80b0-204f-49ad-8682-5bf232b9f927.root'
@@ -42,7 +58,8 @@ if useAOD == True :
     print("AOD input files are used")
 else :
     inputFiles = inputFilesMiniAOD
-    outputFile = "photon_ntuple_Run3_Winter22_IDtest_Hgg_xmlweights_MiniAOD.root"
+    # outputFile = "photon_ntuple_Run3_Winter22_IDtest_Hgg_xmlweights_MiniAOD.root"
+    outputFile = FLAGS.output
     print("MiniAOD input files are used")
 process.source = cms.Source ("PoolSource", fileNames = inputFiles )
 
