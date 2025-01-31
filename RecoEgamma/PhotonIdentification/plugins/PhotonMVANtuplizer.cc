@@ -33,6 +33,7 @@
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
+#include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
 
 #include <TTree.h>
 #include <TFile.h>
@@ -55,6 +56,7 @@ private:
 
   // other
   TTree* tree_;
+  TH1D* hSumGenWeights_;  // Histogram for sum of gen weights
 
   // global variables
   int nEvent_, nRun_, nLumi_;
@@ -100,6 +102,11 @@ private:
   const edm::EDGetTokenT<EcalRecHitCollection> eeRecHits_;
 
   const EcalClusterLazyTools::ESGetTokens ecalClusterToolsESGetTokens_;
+
+  // Weights
+  edm::EDGetTokenT<GenEventInfoProduct> genEventInfoToken_;
+  double weight_;
+  double sumGenWeights_;  // Sum of gen weights
 
   // to hold ID decisions and categories
   std::vector<int> mvaPasses_;
@@ -176,6 +183,8 @@ PhotonMVANtuplizer::PhotonMVANtuplizer(const edm::ParameterSet& iConfig)
       ebRecHits_(consumes<EcalRecHitCollection>(iConfig.getParameter<edm::InputTag>("ebReducedRecHitCollection"))),
       eeRecHits_(consumes<EcalRecHitCollection>(iConfig.getParameter<edm::InputTag>("eeReducedRecHitCollection"))),
       ecalClusterToolsESGetTokens_{consumesCollector()},
+      genEventInfoToken_(consumes<GenEventInfoProduct>(edm::InputTag("generator"))),
+      sumGenWeights_(0.0),
       mvaPasses_(nPhoMaps_),
       mvaValues_(nValMaps_),
       mvaCats_(nCats_),
@@ -183,6 +192,7 @@ PhotonMVANtuplizer::PhotonMVANtuplizer(const edm::ParameterSet& iConfig)
       mvaVarMngr_(iConfig.getParameter<std::string>("variableDefinition"), MVAVariableHelper::indexMap()),
       nVars_(mvaVarMngr_.getNVars()),
       vars_(nVars_),
+
       doEnergyMatrix_(iConfig.getParameter<bool>("doEnergyMatrix")),
       energyMatrixSize_(iConfig.getParameter<int>("energyMatrixSize")) {
   // phoMaps
@@ -202,6 +212,7 @@ PhotonMVANtuplizer::PhotonMVANtuplizer(const edm::ParameterSet& iConfig)
   usesResource(TFileService::kSharedResource);
   edm::Service<TFileService> fs;
   tree_ = fs->make<TTree>("tree", "tree");
+  hSumGenWeights_ = fs->make<TH1D>("hSumGenWeights", "Sum of Gen Weights", 1, 0.5, 1.5);
 
   tree_->Branch("nEvent", &nEvent_);
   tree_->Branch("nRun", &nRun_);
@@ -209,10 +220,12 @@ PhotonMVANtuplizer::PhotonMVANtuplizer(const edm::ParameterSet& iConfig)
   if (isMC_) {
     tree_->Branch("genNpu", &genNpu_);
     tree_->Branch("matchedToGenPh", &matchedToGenPh_);
+    tree_->Branch("weight", &weight_);
   }
   tree_->Branch("vtxN", &vtxN_);
   tree_->Branch("pT", &pT_);
   tree_->Branch("eta", &eta_);
+
 
   if (doEnergyMatrix_)
     tree_->Branch("energyMatrix", &energyMatrix_);
@@ -266,6 +279,17 @@ void PhotonMVANtuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup
         genNpu_ = pu.getPU_NumInteractions();
         break;
       }
+    }
+  }
+
+  if (isMC_) {
+    edm::Handle<GenEventInfoProduct> genEventInfo;
+    iEvent.getByToken(genEventInfoToken_, genEventInfo);
+    if (genEventInfo.isValid()) {
+      weight_ = genEventInfo->weight();
+      hSumGenWeights_->Fill(1.0, weight_);  // Fill histogram with weight
+    } else {
+      std::cerr << "GenEventInfoProduct not found!" << std::endl;
     }
   }
 
@@ -342,7 +366,7 @@ void PhotonMVANtuplizer::fillDescriptions(edm::ConfigurationDescriptions& descri
   desc.add<bool>("doEnergyMatrix", false);
   desc.add<int>("energyMatrixSize", 2)->setComment("extension of crystals in each direction away from the seed");
   desc.add<bool>("isMC", true);
-  desc.add<double>("ptThreshold", 15.0);
+  desc.add<double>("ptThreshold", 10.0);
   desc.add<double>("deltaR", 0.1);
   desc.add<std::string>("variableDefinition");
   descriptions.addDefault(desc);

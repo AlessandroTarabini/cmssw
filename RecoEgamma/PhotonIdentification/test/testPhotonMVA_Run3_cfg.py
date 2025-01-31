@@ -6,12 +6,12 @@ from Configuration.AlCa.GlobalTag import GlobalTag
 from FWCore.ParameterSet.VarParsing import VarParsing
 FLAGS = VarParsing('analysis')
 FLAGS.register('sample',
-               '',
+               '/store/mc/Run3Winter22MiniAOD/GJet_Pt-10to40_DoubleEMEnriched_TuneCP5_13p6TeV_pythia8/MINIAODSIM/FlatPU0to70_122X_mcRun3_2021_realistic_v9-v2/40000/6918fead-327f-4ec1-8564-1ba16032678b.root',
                VarParsing.multiplicity.singleton,
                VarParsing.varType.string,
                "File to process.")
 FLAGS.register('output',
-               '',
+               'TEST.root',
                VarParsing.multiplicity.singleton,
                VarParsing.varType.string,
                "Name of the output file.")
@@ -32,7 +32,7 @@ process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:phase1_2022_realistic', '
 mvaVariablesFile = "RecoEgamma/PhotonIdentification/data/PhotonMVAEstimatorRun3VariablesWinter22V1.txt"
 
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10) )
 
 
 inputFilesAOD = cms.untracked.vstring(
@@ -117,6 +117,7 @@ process.ntuplizer = cms.EDAnalyzer('PhotonMVANtuplizer',
         #
         doEnergyMatrix = cms.bool(False), # disabled by default due to large size
         energyMatrixSize = cms.int32(2), # corresponding to 5x5
+        ptThreshold = cms.double(10),
         #
         **input_tags
         )
