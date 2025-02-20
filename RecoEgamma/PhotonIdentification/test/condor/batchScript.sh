@@ -30,7 +30,7 @@ echo ${outputName}
 #outputName="${filename%.root}"
 #echo ${outputName}
 
-cmsRun ../testPhotonMVA_Run3_cfg.py sample=${1} output=output/${outputName}
+cmsRun ../testPhotonMVA_Run3_cfg.py sample=${1} output=output_${2}/${outputName}
 #########################################################
 # cleaning of temporary working dir after job is completed:
 rm  -rf /scratch/$USER/${SLURM_JOB_ID}

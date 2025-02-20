@@ -150,12 +150,13 @@ namespace {
       }
     }
     // See if the closest photon (if it exists) is close enough.
-    // If not, no match found.
-    if (dR < deltaR) {
-      if (closestPhoton->isPromptFinalState())
+    // If not, no match found. 
+    if (dR < deltaR && abs(closestPhoton->pt() - ph.pt())/closestPhoton->pt() < 0.20) {
+      if (closestPhoton->isPromptFinalState() && closestPhoton->fromHardProcessFinalState()) {
         return TRUE_PROMPT_PHOTON;
-      else
+      } else {
         return TRUE_NON_PROMPT_PHOTON;
+      }
     }
     return FAKE_PHOTON;
   }

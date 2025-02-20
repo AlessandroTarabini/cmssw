@@ -32,7 +32,7 @@ process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:phase1_2022_realistic', '
 mvaVariablesFile = "RecoEgamma/PhotonIdentification/data/PhotonMVAEstimatorRun3VariablesWinter22V1.txt"
 
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 
 inputFilesAOD = cms.untracked.vstring(
